@@ -1,0 +1,28 @@
+
+
+-- keywords report example ONLINE
+
+
+https://growthmindedmarketing.com/blog/organic-paid-keyword-analysis-tool/
+
+
+
+-- wiki
+https://worldremit.atlassian.net/wiki/spaces/AN/pages/3781034404/Web+Search+data
+
+
+
+-- SEO Team meeting notes
+The team reports on not just SEO, but all non-paid channels, which are all bundled into a single "Organic"
+channel
+
+Reporting:
+ - data studio Report
+ - clarisights Report (https://app.clarisights.com/dashboard/reports/13455/tab/50329)
+ - visibility in SEO Monitor
+ - SEM rush (has competitor rankings, but we have no access to the API)
+
+
+
+
+ DART - Dynamic Advertising Reporting and Targeting
