@@ -31,7 +31,7 @@ select page, top_keyword
          when page like '%/stories/%' then 'blog'
 
       else top_keyword_paid_category end as page_category
-  , clicks, impressions, tot_position
+  , clicks, impressions, tot_position, row_number() over (partition by top_keyword order by clicks desc) as row_number_kw
 from paid_cat;
 
 

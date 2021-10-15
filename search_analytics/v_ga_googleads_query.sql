@@ -2,7 +2,7 @@
 create or replace view personal_space_db.abungsy_stg.v_ga_googleads_query as
 (select  -- date
 device_device_category
-, traffic_source_keyword    -- = 'Dynamic Search Ads' (which overall is 3% of all PPC Visits)
+, lower(traffic_source_keyword) traffic_source_keyword    -- = 'Dynamic Search Ads' (which overall is 3% of all PPC Visits)
 , traffic_source_adwords_click_info_criteria_parameters
 , traffic_source_ad_content
 , traffic_source_campaign
