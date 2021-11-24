@@ -14,6 +14,7 @@ with
           , 0 as ppc_impressions, 0 as ppc_clicks, 0 as ppc_cost
          from personal_space_db.abungsy_stg.v_gsc_queries
         ),
+cat as (select  keyword, category, sum(clicks_seo) clicks_seo, sum(clicks_ppc) ppc_click from personal_space_db.abungsy_stg.v_dim_query_cat group by keyword, category),
 output as (
 select  date
 --, Yrmonth
@@ -49,5 +50,5 @@ select output.*
   , case when seo_impressions > 0 then round(seo_position_total/seo_impressions,1) end  as  seo_position_unweighted
   , cat.category
 from output
-left join (select distinct keyword, category from personal_space_db.abungsy_stg.v_dim_query_cat) cat on output.keyword = cat.keyword   -- getting keyword categories
+left join cat on output.keyword = cat.keyword   -- getting keyword categories
 ;

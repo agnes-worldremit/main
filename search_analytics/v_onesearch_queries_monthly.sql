@@ -18,6 +18,7 @@ with
            where  datediff(month, date, CURRENT_DATE()) > 0   -- exclude current month
                 and datediff(day, date, CURRENT_DATE()) > 3  -- pull data up to 3 days ago only (gsc data usually is available 3 days late)
         ),
+cat as (select  keyword, category, sum(clicks_seo) clicks_seo, sum(clicks_ppc) ppc_click from personal_space_db.abungsy_stg.v_dim_query_cat group by keyword, category),
 output as
 
 (select  -- date
@@ -48,10 +49,11 @@ select output.*
    ,case when (seo_impressions > 0 and round(seo_position_total/seo_impressions,0) < 10) and seo_impressions >= ppc_impressions then ppc_cost end  ppc_cost_adjusted
    ,case when (seo_impressions > 0 and round(seo_position_total/seo_impressions,0) < 10) and seo_impressions >= ppc_impressions then searches_adjusted_v1 end  searches_adjusted
    ,case when (seo_impressions > 0 and round(seo_position_total/seo_impressions,0) < 10) and seo_impressions >= ppc_impressions then seo_clicks_adjusted_v1 end  seo_clicks_adjusted
+       , case when searches_adjusted  >0 then 1 else 0 end blended_data_valid_flag
   , case when seo_impressions > 0 then round(seo_position_total/seo_impressions,1) end  as  seo_position_unweighted
   , cat.category
 from output
-left join (select distinct keyword, category from personal_space_db.abungsy_stg.v_dim_query_cat) cat on output.keyword = cat.keyword   -- getting keyword categories
+left join cat on output.keyword = cat.keyword   -- getting keyword categories
           ;
 
 
@@ -66,7 +68,20 @@ select * from  personal_space_db.abungsy_stg.v_onesearch_queries_monhtly limit 1
 -- show all data for a country, monthly
 select *
 from personal_space_db.abungsy_stg.v_onesearch_queries_monhtly
-where country_name = 'United Kingdom' -- and keyword = 'trustly bank transfer'
+where country_name = 'United Kingdom' --  and keyword = 'trustly bank transfer'
 order by combined_clicks desc nulls last
 
 */
+
+
+
+
+-- returns: category = 'generic'
+select  category, sum(seo_clicks) as seo_clicks, sum(seo_impressions) from personal_space_db.abungsy_stg.v_gsc_queries  where keyword = 'trustly bank transfer' group by category
+
+-- returns: category = 'competitor'
+select  distinct category from personal_space_db.abungsy_stg.v_gsc_queries  where keyword = 'trustly bank transfer'
+
+
+
+select distinct category from personal_space_db.abungsy_stg.v_onesearch_queries_monhtly where keyword = 'trustly bank transfer'
