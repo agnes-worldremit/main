@@ -10,9 +10,9 @@ full_list as (select distinct keyword from  "WR_FIVETRAN_DB"."SEARCH_CONSOLE_FIV
               select distinct query from "WR_FIVETRAN_DB"."ADWORDS_ONESEARCH_FIVETRAN_STG"."SEARCH_QUERY_PERFORMANCE_REPORT" where query not like '%+%'),
 
 gsc_list as (select keyword, sum(clicks) clicks, sum(impressions) impressions, sum(impressions*position) as tot_position
-             from "WR_FIVETRAN_DB"."SEARCH_CONSOLE_FIVETRAN_STG"."KEYWORD_SITE_REPORT_BY_SITE" where search_type = 'web' group by 1),
+             from "WR_FIVETRAN_DB"."SEARCH_CONSOLE_FIVETRAN_STG"."KEYWORD_SITE_REPORT_BY_SITE" where search_type = 'web' group by keyword),
 
-paid_list as (select  traffic_source_keyword, sum(visits) visits_ppc, sum(trx) trx_ppc from personal_space_db.abungsy_stg.v_ga_googleads_query group by 1),
+paid_list as (select  traffic_source_keyword, sum(visits) visits_ppc, sum(trx) trx_ppc from personal_space_db.abungsy_stg.v_ga_googleads_query group by traffic_source_keyword),
 
 --getting categories for keywords based on paid campaigns
 paid_cat  as (select keyword, campaign_category  as campaign_category1 from personal_space_db.abungsy_stg.v_ga_googleads_query_cat where campaign_category is not null ),
@@ -79,6 +79,7 @@ select  case when len(fl.keyword) > 50 then concat(left(fl.keyword,50),'..XX') e
   , tot_position/impressions position_seo
   , round(round(tot_position/impressions/5,1)*5,1) position_seo_round
   , round(tot_position/impressions,0) position_seo_round_whole
+   , to_number(clicks)+to_number(pc2.clicks_ppc) as total_clicks
   , NTILE (10)OVER (order by impressions_seo asc )   size_group    -- score keywords from 1 to 10, based on total volumes of clicks*impressions
   , NTILE (10)OVER (partition by category   order by  impressions_seo asc )   size_group_cat -- score keywords at a category level, from 1 to 10, based on total volumes of clicks*impressions
   , NTILE (10)OVER (order by impressions_ppc asc )   size_group_ppc    -- score keywords from 1 to 10, based on total volumes of clicks*impressions
@@ -145,5 +146,7 @@ select * from personal_space_db.abungsy_stg.v_ga_googleads_query_cat where keywo
 
 -- view  paid categories by category
 select * from personal_space_db.abungsy_stg.v_ga_googleads_query_cat where campaign_category = 'competitor' order by visits_ppc desc  limit 100
+
+select * from  personal_space_db.abungsy_stg.v_dim_query_cat where keyword =  'trustly bank transfer'
 
 */
