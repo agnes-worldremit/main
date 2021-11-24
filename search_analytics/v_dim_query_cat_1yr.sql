@@ -1,16 +1,16 @@
--- a full and distinct list of search queries (SEO+PPC), with keyword category
+-- a full and distinct list of search queries (SEO+PPC), with keyword category, last 1 year only
 
-create or replace view personal_space_db.abungsy_stg.v_dim_query_cat as (
+create or replace view personal_space_db.abungsy_stg.v_dim_query_cat_1yr as (
 with
   -- full list of paid and organic keywords (paid using targeted keyworsd as we currently dont have actual paid keywords)
-full_list as (select distinct keyword from  "WR_FIVETRAN_DB"."SEARCH_CONSOLE_FIVETRAN_STG"."KEYWORD_SITE_REPORT_BY_SITE" where search_type = 'web'
+full_list as (select distinct keyword from  "WR_FIVETRAN_DB"."SEARCH_CONSOLE_FIVETRAN_STG"."KEYWORD_SITE_REPORT_BY_SITE" where search_type = 'web' and  datediff(year, date, CURRENT_DATE()) = 0 and datediff(day, date, CURRENT_DATE()) > 3
               UNION
               select distinct traffic_source_keyword from personal_space_db.abungsy_stg.v_ga_googleads_query where traffic_source_keyword not like '%+%' and traffic_source_campaign not like '%_DSA%'
               UNION
-              select distinct query from "WR_FIVETRAN_DB"."ADWORDS_ONESEARCH_FIVETRAN_STG"."SEARCH_QUERY_PERFORMANCE_REPORT" where query not like '%+%'),
+              select distinct query from "WR_FIVETRAN_DB"."ADWORDS_ONESEARCH_FIVETRAN_STG"."SEARCH_QUERY_PERFORMANCE_REPORT" where query not like '%+%' and   datediff(year, date, CURRENT_DATE()) = 0  and datediff(day, date, CURRENT_DATE()) > 3),
 
 gsc_list as (select keyword, sum(clicks) clicks, sum(impressions) impressions, sum(impressions*position) as tot_position
-             from "WR_FIVETRAN_DB"."SEARCH_CONSOLE_FIVETRAN_STG"."KEYWORD_SITE_REPORT_BY_SITE" where search_type = 'web' group by 1),
+             from "WR_FIVETRAN_DB"."SEARCH_CONSOLE_FIVETRAN_STG"."KEYWORD_SITE_REPORT_BY_SITE" where search_type = 'web' and datediff(year, date, CURRENT_DATE()) = 0 group by 1),
 
 paid_list as (select  traffic_source_keyword, sum(visits) visits_ppc, sum(trx) trx_ppc from personal_space_db.abungsy_stg.v_ga_googleads_query group by 1),
 
@@ -79,6 +79,9 @@ select  case when len(fl.keyword) > 50 then concat(left(fl.keyword,50),'..XX') e
   , tot_position/impressions position_seo
   , round(round(tot_position/impressions/5,1)*5,1) position_seo_round
   , round(tot_position/impressions,0) position_seo_round_whole
+  , to_number(clicks)+to_number(pc2.clicks_ppc) as total_clicks
+  , case when  to_number(pc2.impressions_ppc) > to_number(impressions) then pc2.impressions_ppc
+         when  round(tot_position/impressions,0) between 1 and 9 and to_number(impressions) >0 then to_number(impressions) end as searches
   , NTILE (10)OVER (order by impressions_seo asc )   size_group    -- score keywords from 1 to 10, based on total volumes of clicks*impressions
   , NTILE (10)OVER (partition by category   order by  impressions_seo asc )   size_group_cat -- score keywords at a category level, from 1 to 10, based on total volumes of clicks*impressions
   , NTILE (10)OVER (order by impressions_ppc asc )   size_group_ppc    -- score keywords from 1 to 10, based on total volumes of clicks*impressions
@@ -97,14 +100,14 @@ where to_number(clicks)+to_number(pc2.clicks_ppc) > 0 or to_number(pc2.impressio
 -- USEFUL CODE
 
 -- combined data for a query
-select * from personal_space_db.abungsy_stg.v_dim_query_cat where keyword =  'remittance'
+select * from personal_space_db.abungsy_stg.v_dim_query_cat_1yr where keyword =  'remittance'
 
-select * from personal_space_db.abungsy_stg.v_dim_query_cat where clicks_ppc is null and clicks_seo is null limit 100
+select * from personal_space_db.abungsy_stg.v_dim_query_cat_1yr where clicks_ppc is null and clicks_seo is null limit 100
 
-select sum(clicks_ppc) from  personal_space_db.abungsy_stg.v_dim_query_cat  where keyword = 'worklremit'
+select sum(clicks_ppc) from  personal_space_db.abungsy_stg.v_dim_query_cat_1yr  where keyword = 'worklremit'
 
 
-select * from personal_space_db.abungsy_stg.v_dim_query_cat where size_group = 10 limit 100
+select * from personal_space_db.abungsy_stg.v_dim_query_cat_1yr where size_group = 10 limit 100
 
 -- see keywords in gsc data
  select distinct keyword from "WR_FIVETRAN_DB"."SEARCH_CONSOLE_FIVETRAN_STG"."KEYWORD_SITE_REPORT_BY_SITE" where search_type = 'web' and keyword = 'cardless withdrawal standard bank'
@@ -114,12 +117,12 @@ select * from personal_space_db.abungsy_stg.v_dim_query_cat where size_group = 1
 
 
 -- view long keywords
-select * from personal_space_db.abungsy_stg.v_dim_query_cat
+select * from personal_space_db.abungsy_stg.v_dim_query_cat_1yr
 where len(keyword) > 51
 limit 100
 
 -- count distinct keywords
-select count(distinct keyword) from personal_space_db.abungsy_stg.v_dim_query_cat ; 1,650,284
+select count(distinct keyword) from personal_space_db.abungsy_stg.v_dim_query_cat_1yr ; 1,650,284
 
 -- count distinct keywords by size group
 select size_group,sum(clicks_seo) clicks_seo, sum(impressions_seo) impressions_seo, sum(clicks_ppc+clicks_seo) as clicks, sum(impressions_seo+impressions_ppc) as impressions, count(distinct keyword) from personal_space_db.abungsy_stg.v_dim_query_cat group by 1 ;
