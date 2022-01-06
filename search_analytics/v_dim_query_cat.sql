@@ -32,24 +32,29 @@ select  case when len(fl.keyword) > 50 then concat(left(fl.keyword,50),'..XX') e
                                  ,'wordl remit%','remit login','worldremi%','worldre','remitworld','world temit%','world merit%','work remit%','word limit%','world rem%','worldmit%'
                                  , 'world remot%','wold remit%','world re','worldemit','%worldrwmit%','world rim%','worldlimit%','%worldremt%','wirld remit%','worls remi%'
                                  ,'worldrimet%','%wolremit%','wprld remit%','world renit%','world rwmit%','wirldremit%','worldrenit%','world remet%','worlddremit%'
-                                 ,'wordremi%','worldremet%','worlsremit%','word rimit%','%woldermit%')   then 'brand'
+                                 ,'wordremi%','worldremet%','worlsremit%','word rimit%','%woldermit%','%ворлд ремит%','%world-remit%','world. remit')   then 'brand'
          when (campaign_category1 is null and campaign_category2 is null and page_category is null)
                                  and  fl.keyword LIKE ANY ('%westernunion%','%westenun%','%westernun%','%western union%','%wester union%', '%moneygram%', '%money gram%','%kantipurremit%','%smallworld%'
                                  ,'%hello paisa%','%transfast%','ria money%','%dahabshiil%','%wave money transfer%','%orbit remit%','%banreservas%','ime %'
                                  ,'%transferwise%','%transfer wise%','%bancoppel%','poli pay%','%polipay%','%aboki fx%','%caribe exp%','%lebara money%','%instarem%','%abokif%'
                                  ,'%remitly%','%xoom%','%mukuru%','%trustly%','%geld sturen%','%polaris bank%','mobilemoney','m paisa%','poli','m-pesa%','%sendwave%')  then 'competitor'
-         when (campaign_category1 is null and campaign_category2 is null and page_category is null)
+
+           when (campaign_category1 is null and campaign_category2 is null and page_category is null)
+                                 and  fl.keyword LIKE ANY ('%bancolombia%','%mpesa%', '%m pesa%'' ,%gcash%','%airtel%','%alipay%','%mtn mobile%','bpi%','%bpi',' %bpi% ','%mcb%','mcb%','%mcb'
+                                  ,'%cebuana%','%palawan exp%','%digicel%','%airtel money%','%metrobank%','%balikbayan%','%diamond%bank%','%yonna fore%','%yonna fx%','%ntc%','ntc%','%ntc'
+                                  ,'%zaawadi%','%sofort%','%klarna%','%express union%','%intel express%','%mtn%','alipay%','ali pay','ali-pay','jazz%','%etisalat%','%commercial bank%'
+                                  ,'glo %','% glo %','glo','%ecocash%','%eco cash%','%zaad %','% zaad','%banco de reserva%','%lafise%','%bancentro%','%daviplata%','%unitransfer%')  then 'provider'
+
+           when (campaign_category1 is null and campaign_category2 is null and page_category is null)
                                  and  fl.keyword LIKE ANY ('%swift code%','%swift number','swiftcode','what is %','% account number','%swift bank%','canadian bank account'
                                    ,'como abrir %' ,'abrir cuenta %','%remittance meaning%','remit','world permit','bank swift','swift nummer%','swift','%bic swift%'
                                    ,'buy airtime online','devops in london','%abrir una cuenta%','how does mobile money%','%number sample%'
                                    ,'opening a bank account in %','%code swift','cuenta bancaria en %','%banco para abrir%','%scamme%','apple pay refund%','bancos en estados%'
                                    ,'%how many digit%','%transfer scam%','%track transaction%','%iban number%','% meaning','%swift-code%','%bank account for%'
                                    ,'open bank account in%','%open a bank account%','iban','%como enviar dinero%','bic code%','%open canadian bank%','how mobile %'
-                                   ,'%much does it cost%','canada bank account%','%888%','can i receive %','%account number%')  then 'informational'
-         when (campaign_category1 is null and campaign_category2 is null and page_category is null)
-                                 and  fl.keyword LIKE ANY ('%bancolombia%','%mpesa%', '%m pesa%'' ,%gcash%','%airtel%','%alipay%','%mtn mobile%','bpi%','%bpi',' %bpi% ','%mcb%','mcb%','%mcb'
-                                  ,'%cebuana%','%palawan exp%','%digicel%','%airtel money%','%metrobank%','%balikbayan%','%diamond%bank%','%yonna fore%','%yonna fx%','%ntc%','ntc%','%ntc'
-                                  ,'%zaawadi%','%sofort%','%klarna%','%express union%','%intel express%','%mtn%','alipay%','ali pay','ali-pay','jazz%','%etisalat%')  then 'provider'
+                                   ,'%much does it cost%','canada bank account%','%888%','can i receive %','%account number%','%refer a friend%','%nuban number%'
+                                   ,'%ismail ahmed%','%catherine win%','%recarga%grati%')  then 'informational'
+
          when (campaign_category1 is null and campaign_category2 is null and page_category is null)
                                  and  fl.keyword LIKE ANY ('sending money','%send money to %','money transfer organization%','foreign money transfer to%','transfer money to%'
                                   ,'%send money online%','send money%','transfer money%','money transfer to%','%money transfer online%','send money col%'
@@ -67,7 +72,7 @@ select  case when len(fl.keyword) > 50 then concat(left(fl.keyword,50),'..XX') e
           when (campaign_category2 is not null and pc2.clicks_ppc >= visits_ppc)  then campaign_category2   -- paid campaign category from the Google Ads data set
           when page_category is not null then page_category           -- category from the SEO landing page categories
           when campaign_category1 is not null then campaign_category1
-          when campaign_category2 is not null then campaign_category2
+          when campaign_category2 is not null then campaign_category2 else 'other'
           end as category
   , to_number(visits_ppc) visits_ppc
   , to_number(pc2.clicks_ppc) clicks_ppc
@@ -114,6 +119,10 @@ select * from personal_space_db.abungsy_stg.v_dim_query_cat where size_group = 1
  select * from personal_space_db.abungsy_stg.v_dim_googleads_query_cat   where keyword = 'cardless withdrawal standard bank'
 
 
+
+select category, sum(clicks_ppc)clicks_ppc, sum(clicks_seo)clicks_seo, sum(total_clicks) total_clicks, sum(impressions_ppc) impressions_ppc, sum(impressions_seo) impressions_seo
+from personal_space_db.abungsy_stg.v_dim_query_cat group by category
+
 -- view long keywords
 select * from personal_space_db.abungsy_stg.v_dim_query_cat
 where len(keyword) > 51
@@ -142,7 +151,7 @@ select keyword, clicks_seo from personal_space_db.abungsy_stg.v_dim_query_cat  w
 
 
 -- view  paid categories by keyword
-select * from personal_space_db.abungsy_stg.v_ga_googleads_query_cat where keyword like 'pola%' order by visits_ppc desc  limit 100
+select * from personal_space_db.abungsy_stg.v_ga_googleads_query_cat where keyword like '%bank al habib%' order by visits_ppc desc  limit 100
 
 -- view  paid categories by category
 select * from personal_space_db.abungsy_stg.v_ga_googleads_query_cat where campaign_category = 'competitor' order by visits_ppc desc  limit 100

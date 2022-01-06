@@ -31,10 +31,10 @@ select
 , sub_region_name
 , k.device
 --, k.keyword
-, case when cat.category is null then 'XX_Uncategorized'
-       when (percent_rank_imp >= 0.75 OR percent_rank_click >= 0.50) then  k.keyword_short else   CONCAT(cat.category,'-','tail') end as keyword
+, case when cat.category is null then 'XX_other'
+       when (total_clicks >= 10) then  k.keyword_short else   CONCAT(cat.category,'-','tail') end  as keyword
 , case when t.keyword is null then 'no' else 'yes' end as is_tracked
-, COALESCE(cat.category,'Uncategorized') as category
+, COALESCE(cat.category,'other') as category
 , sum(k.clicks) as ppc_clicks
 , sum(k.impressions) as ppc_impressions
 , sum(k.cost) as ppc_cost
@@ -43,17 +43,35 @@ left join (select distinct calendar_date, iso_week_start_date from  "WR_DWH_DB".
 left join (select distinct lower(country_iso3_code) country_code, country_name, region_name, sub_region_name  from "WR_DWH_DB"."DIMENSIONS"."D_GEOGRAPHY" where is_active = TRUE) geo on k.country = geo.country_name
 left join personal_space_db.abungsy_stg.v_dim_query_cat cat on k.keyword = cat.keyword   -- getting keyword categories
 left join personal_space_db.abungsy_stg.v_seo_tracked_keywords t on k.keyword = t.keyword and k.country = t.country
+/*
 -- keyword size
 left join (select k.keyword, percent_rank() over (partition by category order by  impressions) as percent_rank_imp,  percent_rank() over (partition by category order by  clicks) as percent_rank_click
           from (select keyword, sum(clicks) clicks, sum(impressions) impressions  from ppc_queries
           group by 1) k
-          left join personal_space_db.abungsy_stg.v_dim_query_cat cat on k.keyword = cat.keyword) size on k.keyword_short = size.keyword
+          left join personal_space_db.abungsy_stg.v_dim_query_cat cat on k.keyword = cat.keyword) size on k.keyword_short = size.keyword   */
 where --search_type = 'web'
      -- device = 'DESKTOP'
      -- and keyword = 'worldremit'
      -- and country = 'usa'
            date >= '2020-07-01'  --first full month of data
-group by 1,2,3,4,5,6,7,8,9,10,11
+group by --  k.date
+  to_char(dateadd(day,6,iso_week_start_date),'YYYY-MM-DD')
+, to_char(k.date,'YYYY-MM')
+, to_char(iso_week_start_date,'YYYY-MM-DD')
+, to_char(dateadd(day,6,iso_week_start_date),'YYYY-MM-DD')
+-- , k.country
+ , case when  lower(country_code)  in ('gbr','usa','aus','can','gha','nga','phl','deu','fra','zaf','nld','swe','nzl','ken','ind','nor','col','bel','esp','pak','zwe','irl','mex','uga','ita'
+                                       ,'mys','dnk','che','fin')
+                      then geo.country_name else  'Other'end
+--, geo.country_name
+, region_name
+, sub_region_name
+, k.device
+--, k.keyword
+, case when cat.category is null then 'XX_other'
+       when (total_clicks >= 10) then  k.keyword_short else   CONCAT(cat.category,'-','tail') end
+, case when t.keyword is null then 'no' else 'yes' end
+, COALESCE(cat.category,'other')
 ;
 
 
