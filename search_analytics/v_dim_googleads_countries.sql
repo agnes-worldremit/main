@@ -4,7 +4,7 @@ create or replace view personal_space_db.abungsy_stg.v_dim_googleads_countries a
 with
 ga as
 (select
- traffic_source_campaign as campaign
+ lower(traffic_source_campaign) as campaign
 , geo_network_country as country
 , sum(total_visits ) visits
 , sum(total_transactions) trx

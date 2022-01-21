@@ -37,11 +37,4 @@ select campaign_category, sum(clicks_ppc) clicks, sum(impressions_ppc) impressio
 from personal_space_db.abungsy_stg.v_dim_googleads_query_cat
 group by 1;
 
--- see inconsistent categories
-select *
-from personal_space_db.abungsy_stg.v_dim_googleads_query_cat ads
-join personal_space_db.abungsy_stg.v_ga_googleads_query_cat ga on ads.keyword = ga.keyword
-where ads.campaign_category is not null and  ga.campaign_category is not null and ads.campaign_category <>  ga.campaign_category
-limit 100
-
 */
